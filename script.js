@@ -29,10 +29,15 @@ const Game = (function(){
 
     const tiles = document.getElementsByClassName('tiles');
     const board = document.getElementById('gameboard');
+    const winnerPopup = document.querySelector('.winner-display');
+    const winner = document.getElementById('winner');
+    const overlay = document.querySelector('.overlay');
+    const resetButton = document.getElementById('reset');
 
     //Bind Events
 
     board.addEventListener('click',playRound);
+    resetButton.addEventListener('click',reset);
 
     //Functions and Methods
 
@@ -43,11 +48,12 @@ const Game = (function(){
     }
     
     function playRound(event) {
-        const index = [...event.target.parentElement.children].indexOf(event.target);
+        const index = typeof event == 'number' ? event : 
+        [...event.target.parentElement.children].indexOf(event.target);
         if (gameboard[index] != '') return;
         gameboard[index] = playerTurn.getMark();
         tiles[index].textContent = gameboard[index];
-        if(checkWinner()){}
+        checkWinner();
         playerTurn = playerTurn == player1? player2 : player1;
     }
 
@@ -58,9 +64,33 @@ const Game = (function(){
             let p1 = combination[1];
             let p2 = combination[2];
             if (gameboard[p0]!=''&&gameboard[p0]==gameboard[p1]&&gameboard[p1]==gameboard[p2]){
-                return true;
+                winner.textContent = `${playerTurn.getName()} Wins!!!`
+                winnerDisplay('on');
+                return;
             } 
         }
-        return false;
+        if (!gameboard.includes('')){
+            winner.textContent = `It's a Draw!!!`
+            winnerDisplay('on');
+        } 
     }
+
+    function winnerDisplay(state){
+        if (state=='on'){
+            winnerPopup.classList.add('winner-display-active');
+            overlay.classList.add('overlay-active');
+        }
+        if (state=='off'){
+            winnerPopup.classList.remove('winner-display-active');
+            overlay.classList.remove('overlay-active');
+        }
+
+    }
+
+    function reset(){
+        gameboard = ['','','','','','','','',''];
+        winnerDisplay('off');
+        render();
+    }
+    return {reset,playRound};
 })();
