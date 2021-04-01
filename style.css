@@ -31,9 +31,10 @@ h1 {
     display: flex;
     flex-wrap: wrap;
     width: 45rem;
-    margin: auto;
+    margin: 5rem auto;
     border: 1px solid black;
     box-sizing: initial;
+
 }
 
 .winner-display {
@@ -84,4 +85,15 @@ h1 {
 #reset:hover {
     cursor: pointer;
     transform: scale(1.05);
+}
+
+#opponent-selector{
+    font-size: 2rem;
+    text-align: center;
+}
+#opponent-selector #opponent {
+    font-size: 1.5rem;
+}
+#opponent-selector #opponent:focus {
+    outline: none;
 }

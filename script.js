@@ -24,7 +24,6 @@ const Game = (function(){
     const player2 = Player('Player2','O');
     let gameboard = ['','','','','','','','',''];
     let playerTurn = player1;
-
     //Dom Elements
 
     const tiles = document.getElementsByClassName('tiles');
@@ -33,11 +32,16 @@ const Game = (function(){
     const winner = document.getElementById('winner');
     const overlay = document.querySelector('.overlay');
     const resetButton = document.getElementById('reset');
-
+    const opponent = document.getElementById('opponent')
+     
     //Bind Events
 
     board.addEventListener('click',playRound);
     resetButton.addEventListener('click',reset);
+    opponent.addEventListener('click',()=>{
+        playerTurn=player1;
+        reset()
+    });
 
     //Functions and Methods
 
@@ -62,7 +66,7 @@ const Game = (function(){
             winnerDisplay('on');
         }
         playerTurn = playerTurn == player1? player2 : player1;
-        if (playerTurn==player2){
+        if (playerTurn==player2 && opponent.value=='Computer'){
             playRound(minimax(gameboard,0));
         }
     }
@@ -97,7 +101,7 @@ const Game = (function(){
     function reset(){
         gameboard = ['','','','','','','','',''];
         winnerDisplay('off');
-        if (playerTurn==player2){
+        if (playerTurn==player2 && opponent.value=='Computer'){
             playRound(minimax(gameboard,0));
         }
         render();
