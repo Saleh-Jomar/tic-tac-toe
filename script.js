@@ -53,8 +53,18 @@ const Game = (function(){
         if (gameboard[index] != '') return;
         gameboard[index] = playerTurn.getMark();
         tiles[index].textContent = gameboard[index];
-        checkWinner();
+        if (checkWinner()==playerTurn.getName()){
+            winner.textContent = `${playerTurn.getName()} Wins!!!`
+            winnerDisplay('on');
+        }
+        if (checkWinner()=='Draw'){
+            winner.textContent = `It's a Draw!!!`
+            winnerDisplay('on');
+        }
         playerTurn = playerTurn == player1? player2 : player1;
+        if (playerTurn==player2){
+            playRound(minimax(gameboard,0));
+        }
     }
 
     function checkWinner(){
@@ -64,14 +74,11 @@ const Game = (function(){
             let p1 = combination[1];
             let p2 = combination[2];
             if (gameboard[p0]!=''&&gameboard[p0]==gameboard[p1]&&gameboard[p1]==gameboard[p2]){
-                winner.textContent = `${playerTurn.getName()} Wins!!!`
-                winnerDisplay('on');
-                return;
+                return playerTurn.getName();
             } 
         }
         if (!gameboard.includes('')){
-            winner.textContent = `It's a Draw!!!`
-            winnerDisplay('on');
+            return 'Draw'
         } 
     }
 
@@ -90,7 +97,51 @@ const Game = (function(){
     function reset(){
         gameboard = ['','','','','','','','',''];
         winnerDisplay('off');
+        if (playerTurn==player2){
+            playRound(minimax(gameboard,0));
+        }
         render();
     }
+
+    function minimax(board,depth){
+        
+        let result = checkWinner();
+        if (!result==false){
+            switch(true){
+                case result==player1.getName():
+                    return 10 - depth
+                case result==player2.getName():
+                    return -10 + depth
+                case result=='Draw':
+                    return 0
+            }
+        }
+        let score
+        let bestMove
+        let bestScore = playerTurn == player2? -2 : 2;
+
+        for (let i=0; i<gameboard.length;i++){
+            if (gameboard[i]==''){
+                gameboard[i] = playerTurn.getMark()
+                playerTurn = playerTurn == player1? player2 : player1;
+                score = minimax(gameboard,depth+1)
+                gameboard[i]='';
+                playerTurn = playerTurn == player1? player2 : player1;
+                if (depth==0 && score > bestScore){
+                    bestMove = i;
+                }
+                bestScore = playerTurn == player2 ? Math.max(score,bestScore) : Math.min(score,bestScore);
+            }
+        }
+        if(depth==0){
+            return bestMove;
+        }
+        return bestScore;
+
+    }
+    render()
+
+
+
     return {reset,playRound};
 })();
