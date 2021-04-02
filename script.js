@@ -1,6 +1,6 @@
 "use strict"
 
-const Player = function(name,mark){
+const Player = function (name, mark) {
     function getName() {
         return name
     }
@@ -12,18 +12,19 @@ const Player = function(name,mark){
     function setName(newName) {
         name = newName;
     }
-    
-    return {getName,getMark,setName}
+
+    return { getName, getMark, setName }
 
 }
 
-const Game = (function(){
+const Game = (function () {
     //Variables
 
-    const player1 = Player('Player1','X');
-    const player2 = Player('Player2','O');
-    let gameboard = ['','','','','','','','',''];
+    const player1 = Player('Player1', 'X');
+    const player2 = Player('Player2', 'O');
+    let gameboard = ['', '', '', '', '', '', '', '', ''];
     let playerTurn = player1;
+    let availableMove = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     //Dom Elements
 
     const tiles = document.getElementsByClassName('tiles');
@@ -33,119 +34,142 @@ const Game = (function(){
     const overlay = document.querySelector('.overlay');
     const resetButton = document.getElementById('reset');
     const opponent = document.getElementById('opponent')
-     
+
     //Bind Events
 
-    board.addEventListener('click',playRound);
-    resetButton.addEventListener('click',reset);
-    opponent.addEventListener('click',()=>{
-        playerTurn=player1;
+    board.addEventListener('click', playRound);
+    resetButton.addEventListener('click', reset);
+    opponent.addEventListener('click', () => {
+        playerTurn = player1;
         reset()
     });
 
     //Functions and Methods
 
-    function render(){
-        for (let i=0; i<gameboard.length; i++){
+    function render() {
+        for (let i = 0; i < gameboard.length; i++) {
             tiles[i].textContent = gameboard[i];
         }
     }
-    
+
     function playRound(event) {
-        const index = typeof event == 'number' ? event : 
-        [...event.target.parentElement.children].indexOf(event.target);
+        const index = typeof event == 'number' ? event :
+            [...event.target.parentElement.children].indexOf(event.target);
         if (gameboard[index] != '') return;
         gameboard[index] = playerTurn.getMark();
         tiles[index].textContent = gameboard[index];
-        if (checkWinner()==playerTurn.getName()){
+        availableMove.splice(availableMove.indexOf(index), 1);
+        if (checkWinner() == playerTurn.getName()) {
             winner.textContent = `${playerTurn.getName()} Wins!!!`
             winnerDisplay('on');
+            playerTurn = playerTurn == player1 ? player2 : player1;
+            return;
         }
-        if (checkWinner()=='Draw'){
+        if (checkWinner() == 'Draw') {
             winner.textContent = `It's a Draw!!!`
             winnerDisplay('on');
+            playerTurn = playerTurn == player1 ? player2 : player1;
+            return;
         }
-        playerTurn = playerTurn == player1? player2 : player1;
-        if (playerTurn==player2 && opponent.value=='Computer'){
-            playRound(minimax(gameboard,0));
+        playerTurn = playerTurn == player1 ? player2 : player1;
+        if (playerTurn == player2){
+            aiMove();
         }
     }
 
-    function checkWinner(){
-        const winningCombinations = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        for (var combination of winningCombinations){
+    function checkWinner() {
+        const winningCombinations = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+        for (var combination of winningCombinations) {
             let p0 = combination[0];
             let p1 = combination[1];
             let p2 = combination[2];
-            if (gameboard[p0]!=''&&gameboard[p0]==gameboard[p1]&&gameboard[p1]==gameboard[p2]){
+            if (gameboard[p0] != '' && gameboard[p0] == gameboard[p1] && gameboard[p1] == gameboard[p2]) {
                 return playerTurn.getName();
-            } 
+            }
         }
-        if (!gameboard.includes('')){
+        if (!gameboard.includes('')) {
             return 'Draw'
-        } 
+        }
     }
 
-    function winnerDisplay(state){
-        if (state=='on'){
+    function winnerDisplay(state) {
+        if (state == 'on') {
             winnerPopup.classList.add('winner-display-active');
             overlay.classList.add('overlay-active');
         }
-        if (state=='off'){
+        if (state == 'off') {
             winnerPopup.classList.remove('winner-display-active');
             overlay.classList.remove('overlay-active');
         }
 
     }
 
-    function reset(){
-        gameboard = ['','','','','','','','',''];
+    function reset() {
+        gameboard = ['', '', '', '', '', '', '', '', ''];
+        availableMove = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         winnerDisplay('off');
-        if (playerTurn==player2 && opponent.value=='Computer'){
-            playRound(minimax(gameboard,0));
+        if (playerTurn == player2){
+            aiMove();
         }
         render();
     }
 
-    function minimax(board,depth){
-        
+    function minimax(board, depth) {
+
         let result = checkWinner();
-        if (!result==false){
-            switch(true){
-                case result==player1.getName():
+        if (!result == false) {
+            switch (true) {
+                case result == player1.getName():
                     return 10 - depth
-                case result==player2.getName():
+                case result == player2.getName():
                     return -10 + depth
-                case result=='Draw':
+                case result == 'Draw':
                     return 0
             }
         }
         let score
         let bestMove
-        let bestScore = playerTurn == player2? -2 : 2;
+        let bestScore = playerTurn == player2 ? -Infinity : Infinity;
 
-        for (let i=0; i<gameboard.length;i++){
-            if (gameboard[i]==''){
+        for (let i = 0; i < gameboard.length; i++) {
+            if (gameboard[i] == '') {
                 gameboard[i] = playerTurn.getMark()
-                playerTurn = playerTurn == player1? player2 : player1;
-                score = minimax(gameboard,depth+1)
-                gameboard[i]='';
-                playerTurn = playerTurn == player1? player2 : player1;
-                if (depth==0 && score > bestScore){
+                playerTurn = playerTurn == player1 ? player2 : player1;
+                score = minimax(gameboard, depth + 1)
+                gameboard[i] = '';
+                playerTurn = playerTurn == player1 ? player2 : player1;
+                if (depth == 0 && score > bestScore) {
                     bestMove = i;
+                    console.log(bestMove);
                 }
-                bestScore = playerTurn == player2 ? Math.max(score,bestScore) : Math.min(score,bestScore);
+                bestScore = playerTurn == player2 ? Math.max(score, bestScore) : Math.min(score, bestScore);
             }
         }
-        if(depth==0){
+        if (depth == 0) {
             return bestMove;
         }
         return bestScore;
 
     }
-    render()
+    function aiMove() {
+        const weight = Math.random();
+        const move = Math.floor(Math.random() * availableMove.length)
+        switch (true) {
+            case opponent.value == 'Easy' && weight < 0.7:
+                playRound(availableMove[move]);
+                break;
+            case opponent.value == 'Medium' && weight < 0.4:
+                playRound(availableMove[move]);
+                break;
+            case opponent.value == 'Hard' && weight < 0.2:
+                playRound(availableMove[move]);
+                break;
+            case opponent.value == 'Human':
+                break;
+            default:
+                playRound(minimax(gameboard, 0));
+        }
 
-
-
-    return {reset,playRound};
+    }
+    return { reset, playRound };
 })();
